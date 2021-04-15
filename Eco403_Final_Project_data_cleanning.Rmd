@@ -1,0 +1,56 @@
+---
+title: "Untitled"
+author: "Erdong Zhang"
+date: "2021/3/23"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(janitor)
+```
+
+```{r}
+gdp_data <- "E:\\Assignments\\ECO403\\Final project\\raw data\\API_NY.GDP.PCAP.PP.KD_DS2_en_excel_v2_2055648.xls"
+
+gdp_raw <- read_excel(gdp_data, sheet = 1) %>%
+  clean_names() 
+
+sch_raw <- read.csv("E:\\Assignments\\ECO403\\Final project\\raw data\\mean-years-of-schooling-1.csv")
+
+col_raw <- read.csv("E:\\Assignments\\ECO403\\Final project\\raw data\\colonial.csv")
+```
+
+```{r}
+gdp <- gdp_raw %>%
+  select(c("country_name", "country_code", "x2019"))
+
+sch <- sch_raw %>%
+  filter(Year == 2017) %>%
+  clean_names()
+
+```
+
+```{r}
+gdp_new <- gdp %>%
+  left_join(sch, by = c("country_code" = "code")) %>%
+  filter(!is.na(entity)) %>%
+  mutate(country_name = entity) %>%
+  select(-entity)
+
+```
+
+```{r}
+col <- col_raw %>%
+  left_join(gdp_new, by = c("shortnam" = "country_code")) %>%
+  mutate(edu = average_total_years_of_schooling_for_adult_population) %>%
+  select(-c('average_total_years_of_schooling_for_adult_population', "year"))
+
+write.csv(col,"E:\\Assignments\\ECO403\\Final project\\GDP_edu.csv", row.names = FALSE)
+```
+

@@ -1,0 +1,454 @@
+-------------------------------------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  E:\Assignments\ECO403\Final project\Eco403_Final_project.log
+  log type:  text
+ opened on:  13 Apr 2021, 15:31:39
+
+. 
+. set more off
+
+. 
+. clear   
+
+. 
+. use "Eco403_Final_project"
+
+. 
+. // Add labels to variables
+. label variable shortnam "3 letter country name" 
+
+. label variable africa "dummy=1 for Africa"
+
+. label variable lat_abst "Abs(latitude of capital)/90"
+
+. label variable rich4 "dummy=1 for neo-europes"
+
+. label variable avexpr "average protection against expropriation risk"
+
+. label variable logpgp95 "log PPP GDP pc in 1995, World Bank"
+
+. label variable logem4 "log settler mortality"
+
+. label variable asia "=1 for all of asia"
+
+. label variable loghjypl "log GDP per work, Hall&Jones"
+
+. label variable baseco "base sample Colonial Origins paper"
+
+. label variable x2019 "PPP GDP pc in 2019, World Bank"
+
+. label variable edu "average total years of education for adults"
+
+. label variable f_brit "British colony"
+
+. label variable f_french "French colony"
+
+. 
+. gen logx2019 = log(x2019)
+(11 missing values generated)
+
+. 
+. **********
+. *OLS regression on GDP per capita 
+. **********
+. *-- Column 1 and 2 (Base Specification)
+. 
+. reg logpgp95 avexpr, robust
+
+Linear regression                               Number of obs     =        111
+                                                F(1, 109)         =     334.78
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.6113
+                                                Root MSE          =     .71793
+
+------------------------------------------------------------------------------
+             |               Robust
+    logpgp95 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .5318713   .0290688    18.30   0.000      .474258    .5894846
+       _cons |    4.62609   .2406654    19.22   0.000     4.149099    5.103081
+------------------------------------------------------------------------------
+
+. estimates store ols_1
+
+. 
+. reg logx2019 avexpr, robust
+
+Linear regression                               Number of obs     =        113
+                                                F(1, 111)         =     102.52
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.5305
+                                                Root MSE          =     .82527
+
+------------------------------------------------------------------------------
+             |               Robust
+    logx2019 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .4915807   .0485506    10.13   0.000     .3953745    .5877869
+       _cons |   5.998854   .3812385    15.74   0.000     5.243405    6.754303
+------------------------------------------------------------------------------
+
+. estimates store ols_2
+
+. 
+. * -- Column 3 and 4 (With Control)
+. 
+. reg logpgp95 avexpr africa rich4 asia f_brit f_french, robust
+
+Linear regression                               Number of obs     =        111
+                                                F(6, 104)         =     101.67
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.7186
+                                                Root MSE          =     .62539
+
+------------------------------------------------------------------------------
+             |               Robust
+    logpgp95 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .4184834   .0369194    11.34   0.000     .3452709    .4916958
+      africa |  -1.089477   .1992674    -5.47   0.000    -1.484632   -.6943226
+       rich4 |    .010379   .2080478     0.05   0.960    -.4021877    .4229456
+        asia |  -.2478064   .1839713    -1.35   0.181    -.6126283    .1170155
+      f_brit |   .1800053   .1851352     0.97   0.333    -.1871247    .5471353
+    f_french |   .2716414   .2229096     1.22   0.226    -.1703967    .7136795
+       _cons |   5.717257   .3070593    18.62   0.000     5.108347    6.326168
+------------------------------------------------------------------------------
+
+. estimates store ols_3
+
+. 
+. reg logx2019 avexpr africa rich4 asia f_brit f_french, robust
+
+Linear regression                               Number of obs     =        113
+                                                F(6, 106)         =      81.17
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.7131
+                                                Root MSE          =     .66017
+
+------------------------------------------------------------------------------
+             |               Robust
+    logx2019 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .3505138   .0441099     7.95   0.000     .2630616     .437966
+      africa |  -1.255337   .2122028    -5.92   0.000     -1.67605   -.8346244
+       rich4 |  -.0355616   .1971892    -0.18   0.857    -.4265084    .3553852
+        asia |  -.0326788   .1555868    -0.21   0.834    -.3411447    .2757871
+      f_brit |   .1234924   .1704229     0.72   0.470    -.2143874    .4613723
+    f_french |   .0079007   .2260072     0.03   0.972    -.4401805    .4559819
+       _cons |   7.348887   .3633784    20.22   0.000     6.628454     8.06932
+------------------------------------------------------------------------------
+
+. estimates store ols_4
+
+. 
+. esttab ols_1 ols_2 ols_3 ols_4 using "OLS Regression Table on GDP", ///
+>         label ///
+>         rtf replace se ///
+>         mtitles("OLS 1995 GDP" "OLS 2019 GDP" "OLS 1995 GDP w/ dummy" "OLS 2019 GDP w/ dummy") ///
+>         stats(N r2 F, labels("Observations" "R-squared" "F-statistics")) ///
+> 
+(output written to OLS Regression Table on GDP.rtf)
+
+.         
+. *********** 
+. *IV regression on GDP per capita
+. ***********
+. *-- Column 1 (First stage)
+. reg avexpr logem4, robust
+
+Linear regression                               Number of obs     =         74
+                                                F(1, 72)          =      26.70
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.3044
+                                                Root MSE          =     1.3207
+
+------------------------------------------------------------------------------
+             |               Robust
+      avexpr |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      logem4 |  -.6467746   .1251583    -5.17   0.000    -.8962731   -.3972761
+       _cons |   9.527563   .5741671    16.59   0.000     8.382982    10.67214
+------------------------------------------------------------------------------
+
+. estimates store first_stage
+
+. 
+. *-- Column 2 and 3 (Base Specification)
+. ivreg logpgp95 (avexpr=logem4), robust
+
+Instrumental variables (2SLS) regression        Number of obs     =         70
+                                                F(1, 68)          =      39.30
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.3045
+                                                Root MSE          =     .88991
+
+------------------------------------------------------------------------------
+             |               Robust
+    logpgp95 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .8683932    .138522     6.27   0.000     .5919768     1.14481
+       _cons |   2.370164   .9418164     2.52   0.014     .4907992     4.24953
+------------------------------------------------------------------------------
+Instrumented:  avexpr
+Instruments:   logem4
+------------------------------------------------------------------------------
+
+. estimates store iv_1
+
+. 
+. ivreg logx2019 (avexpr=logem4), robust
+
+Instrumental variables (2SLS) regression        Number of obs     =         72
+                                                F(1, 70)          =      28.41
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.2158
+                                                Root MSE          =     .97141
+
+------------------------------------------------------------------------------
+             |               Robust
+    logx2019 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .9132795   .1713584     5.33   0.000      .571516    1.255043
+       _cons |    3.10515   1.154062     2.69   0.009     .8034447    5.406855
+------------------------------------------------------------------------------
+Instrumented:  avexpr
+Instruments:   logem4
+------------------------------------------------------------------------------
+
+. estimates store iv_2
+
+. 
+. *-- Column 4 and 5 (With Control)
+. ivreg logpgp95 (avexpr=logem4) africa rich4 asia f_brit f_french, robust
+
+Instrumental variables (2SLS) regression        Number of obs     =         70
+                                                F(6, 63)          =      35.46
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.4146
+                                                Root MSE          =     .84824
+
+------------------------------------------------------------------------------
+             |               Robust
+    logpgp95 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .9157725   .3433604     2.67   0.010     .2296215    1.601923
+      africa |  -.7166487   .3464336    -2.07   0.043    -1.408941   -.0243563
+       rich4 |  -1.439839   1.070479    -1.35   0.183     -3.57902    .6993427
+        asia |  -1.015571   .3827526    -2.65   0.010    -1.780441   -.2507006
+      f_brit |   .0286497     .27887     0.10   0.918    -.5286276    .5859269
+    f_french |   .3470418   .3533901     0.98   0.330    -.3591519    1.053236
+       _cons |   2.498517   2.224974     1.12   0.266     -1.94774    6.944773
+------------------------------------------------------------------------------
+Instrumented:  avexpr
+Instruments:   africa rich4 asia f_brit f_french logem4
+------------------------------------------------------------------------------
+
+. estimates store iv_3
+
+. 
+. ivreg logx2019 (avexpr=logem4) africa rich4 asia f_brit f_french, robust
+
+Instrumental variables (2SLS) regression        Number of obs     =         72
+                                                F(6, 65)          =      33.39
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.4536
+                                                Root MSE          =     .84148
+
+------------------------------------------------------------------------------
+             |               Robust
+    logx2019 |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .8609933   .3618805     2.38   0.020     .1382681    1.583719
+      africa |  -.8505453   .2724053    -3.12   0.003    -1.394576   -.3065143
+       rich4 |  -1.555432   1.105993    -1.41   0.164    -3.764252    .6533878
+        asia |   -.762658   .3472659    -2.20   0.032    -1.456196   -.0691202
+      f_brit |   .0996689   .2412956     0.41   0.681    -.3822317    .5815694
+    f_french |   .1546945   .2893877     0.53   0.595    -.4232526    .7326416
+       _cons |    3.94441   2.327846     1.69   0.095    -.7046193     8.59344
+------------------------------------------------------------------------------
+Instrumented:  avexpr
+Instruments:   africa rich4 asia f_brit f_french logem4
+------------------------------------------------------------------------------
+
+. estimates store iv_4
+
+. 
+. esttab first_stage iv_1 iv_2 iv_3 iv_4 using "IV Regression Table on GDP", ///
+>         label ///
+>         rtf replace se ///
+>         mtitles("First Stage" "IV 1995 GDP" "IV 2019 GDP" "IV 1995 GDP w/ dummy" "IV 2019 GDP w/ dummy") ///
+>         stats(N, labels("Observations")) ///
+> 
+(output written to IV Regression Table on GDP.rtf)
+
+. 
+. ************* 
+. *OLS regression on education 
+. *************
+. *-- Column 1 (Base)
+. reg edu avexpr, robust
+
+Linear regression                               Number of obs     =        116
+                                                F(1, 114)         =     111.11
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.5240
+                                                Root MSE          =      2.146
+
+------------------------------------------------------------------------------
+             |               Robust
+         edu |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   1.274528   .1209133    10.54   0.000        1.035    1.514057
+       _cons |  -.6104538   .9478374    -0.64   0.521    -2.488112    1.267205
+------------------------------------------------------------------------------
+
+. estimates store ols_edu_1
+
+. 
+. *-- Column 3 (with dummy)
+. reg edu avexpr africa rich4 asia f_brit f_french, robust
+
+Linear regression                               Number of obs     =        116
+                                                F(6, 109)         =      96.01
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.6857
+                                                Root MSE          =     1.7834
+
+------------------------------------------------------------------------------
+             |               Robust
+         edu |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   .8675253   .1101946     7.87   0.000     .6491231    1.085927
+      africa |  -3.000453   .4650798    -6.45   0.000    -3.922226    -2.07868
+       rich4 |   .7538124   .5246947     1.44   0.154    -.2861154     1.79374
+        asia |  -.9907269   .4643341    -2.13   0.035    -1.911022   -.0704319
+      f_brit |   .5421471   .4459552     1.22   0.227    -.3417216    1.426016
+    f_french |  -.7221416   .5408146    -1.34   0.185    -1.794019    .3497353
+       _cons |    3.31996   .8939756     3.71   0.000     1.548129     5.09179
+------------------------------------------------------------------------------
+
+. estimates store ols_edu_2
+
+. 
+. 
+. *********** 
+. *IV regression on education
+. ***********
+. *-- Column 2 (Base)
+. ivreg edu (avexpr=logem4), robust
+
+Instrumental variables (2SLS) regression        Number of obs     =         73
+                                                F(1, 71)          =      30.21
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.1836
+                                                Root MSE          =     2.7159
+
+------------------------------------------------------------------------------
+             |               Robust
+         edu |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   2.396839   .4361129     5.50   0.000     1.527254    3.266423
+       _cons |  -8.272112   2.976194    -2.78   0.007    -14.20647    -2.33775
+------------------------------------------------------------------------------
+Instrumented:  avexpr
+Instruments:   logem4
+------------------------------------------------------------------------------
+
+. estimates store iv_edu_1
+
+. 
+. *-- Column 4 (with dummy)
+. ivreg edu (avexpr=logem4) africa rich4 asia f_brit f_french, robust
+
+Instrumental variables (2SLS) regression        Number of obs     =         73
+                                                F(6, 66)          =      48.79
+                                                Prob > F          =     0.0000
+                                                R-squared         =     0.5201
+                                                Root MSE          =     2.1597
+
+------------------------------------------------------------------------------
+             |               Robust
+         edu |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+      avexpr |   1.935397   .8194873     2.36   0.021     .2992381    3.571556
+      africa |   -2.36645   .6702811    -3.53   0.001     -3.70471   -1.028191
+       rich4 |  -2.359939   2.426475    -0.97   0.334    -7.204553    2.484675
+        asia |    -2.2884   .8596308    -2.66   0.010    -4.004708   -.5720916
+      f_brit |    .583464   .5831476     1.00   0.321    -.5808277    1.747756
+    f_french |  -.0025393   .7962742    -0.00   0.997    -1.592352    1.587273
+       _cons |  -3.958683   5.356162    -0.74   0.462    -14.65261    6.735239
+------------------------------------------------------------------------------
+Instrumented:  avexpr
+Instruments:   africa rich4 asia f_brit f_french logem4
+------------------------------------------------------------------------------
+
+. estimates store iv_edu_2
+
+. 
+. esttab ols_edu_1 iv_edu_1 ols_edu_2 iv_edu_2 using "Regression Table on Education", ///
+>         label ///
+>         rtf replace se ///
+>         mtitles("OLS education" "IV education" "OLS education w/ dummy" "IV education w/ dummy") ///
+>         stats(N, labels("Observations")) ///
+> 
+(output written to Regression Table on Education.rtf)
+
+. 
+. 
+. 
+. 
+end of do-file
+
+. tab logem4
+
+log settler |
+  mortality |      Freq.     Percent        Cum.
+------------+-----------------------------------
+   .9360933 |          1        1.15        1.15
+    1.05779 |          1        1.15        2.30
+   2.145931 |          2        2.30        4.60
+   2.433613 |          1        1.15        5.75
+   2.701361 |          1        1.15        6.90
+    2.70805 |          1        1.15        8.05
+    2.74084 |          1        1.15        9.20
+   2.778819 |          1        1.15       10.34
+   2.791165 |          1        1.15       11.49
+   2.873565 |          2        2.30       13.79
+   3.258096 |          2        2.30       16.09
+   3.417727 |          1        1.15       17.24
+   3.471345 |          2        2.30       19.54
+   3.543854 |          1        1.15       20.69
+   3.610648 |          1        1.15       21.84
+   3.884241 |          1        1.15       22.99
+   4.143135 |          1        1.15       24.14
+   4.216562 |          1        1.15       25.29
+   4.232656 |          2        2.30       27.59
+   4.245634 |          1        1.15       28.74
+    4.26268 |          8        9.20       37.93
+   4.268438 |          1        1.15       39.08
+    4.35799 |          5        5.75       44.83
+    4.35927 |          2        2.30       47.13
+   4.442651 |          3        3.45       50.57
+   4.479607 |          1        1.15       51.72
+   4.540098 |          1        1.15       52.87
+   4.770685 |          2        2.30       55.17
+   4.867535 |          3        3.45       58.62
+   4.941642 |          3        3.45       62.07
+   4.976734 |          1        1.15       63.22
+   5.095589 |          3        3.45       66.67
+   5.103883 |          2        2.30       68.97
+   5.135798 |          2        2.30       71.26
+   5.480639 |          2        2.30       73.56
+   5.585449 |          1        1.15       74.71
+   5.634789 |         11       12.64       87.36
+   5.991465 |          1        1.15       88.51
+   6.180017 |          3        3.45       91.95
+   6.284209 |          1        1.15       93.10
+   6.504288 |          3        3.45       96.55
+   7.293018 |          1        1.15       97.70
+   7.602901 |          1        1.15       98.85
+   7.986165 |          1        1.15      100.00
+------------+-----------------------------------
+      Total |         87      100.00
+
+. exit, clear
